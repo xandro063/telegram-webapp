@@ -3,7 +3,10 @@
 <head>
     <title>💰 Инвестиции</title>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#667eea">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -67,46 +70,58 @@
             border-radius: 10px;
             text-align: center;
         }
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 ИНВЕСТИЦИОННОЕ ПРИЛОЖЕНИЕ</h1>
+        <div class="loader" id="loader">🔄 Загрузка данных...</div>
         
-        <div class="card">
-            <h2>Ваш баланс</h2>
-            <div class="balance" id="balance">$1,250.50</div>
-            <button onclick="deposit()">💳 Пополнить баланс</button>
-            <button onclick="withdraw()">📤 Вывести средства</button>
-        </div>
-        
-        <div class="card">
-            <h2>📊 Статистика</h2>
-            <div class="stats">
-                <div class="stat-item">
-                    <div>📈 Доходность</div>
-                    <div style="color: #00ff88; font-weight: bold;">1.5%/день</div>
+        <div id="app-content">
+            <h1 id="welcome-text">🚀 ИНВЕСТИЦИОННОЕ ПРИЛОЖЕНИЕ</h1>
+            
+            <div class="card">
+                <h2>Ваш баланс</h2>
+                <div class="balance" id="balance">$0.00</div>
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <small>ID: <span id="user-id">000000</span></small>
                 </div>
-                <div class="stat-item">
-                    <div>👥 Рефералы</div>
-                    <div style="font-weight: bold;">3</div>
-                </div>
-                <div class="stat-item">
-                    <div>⏱️ Дней</div>
-                    <div style="font-weight: bold;">12</div>
-                </div>
-                <div class="stat-item">
-                    <div>🏆 Уровень</div>
-                    <div style="color: #FFD700; font-weight: bold;">Латунь</div>
+                <button onclick="deposit()">💳 Пополнить баланс</button>
+                <button onclick="withdraw()">📤 Вывести средства</button>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Статистика</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div>📈 Доходность</div>
+                        <div style="color: #00ff88; font-weight: bold;" id="profit-rate">1.5%/день</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>👥 Рефералы</div>
+                        <div style="font-weight: bold;" id="referrals-count">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>💰 Инвестировано</div>
+                        <div style="font-weight: bold;" id="invested">$0.00</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>🏆 Уровень</div>
+                        <div style="color: #FFD700; font-weight: bold;" id="user-level">Латунь</div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="card">
-            <button onclick="showRefs()">👥 Реферальная система</button>
-            <button onclick="showCareer()">🏆 Карьерный рост</button>
-            <button onclick="showCalculator()">🧮 Калькулятор доходности</button>
-            <button onclick="showSupport()">💬 Поддержка</button>
+            
+            <div class="card">
+                <button onclick="showRefs()">👥 Реферальная система</button>
+                <button onclick="showCareer()">🏆 Карьерный рост</button>
+                <button onclick="showCalculator()">🧮 Калькулятор доходности</button>
+                <button onclick="showHistory()">📋 История операций</button>
+            </div>
         </div>
     </div>
 
@@ -114,60 +129,180 @@
         // Telegram Web App API
         let tg = window.Telegram.WebApp;
         
-        // Расширяем на весь экран
+        // Инициализация Web App
+        tg.ready();
         tg.expand();
         tg.setHeaderColor('#667eea');
         tg.setBackgroundColor('#667eea');
-        tg.ready();
         
-        // Получаем данные пользователя
+        // Показываем загрузку
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('app-content').style.display = 'none';
+        
+        // Получаем данные пользователя из Telegram
         let user = tg.initDataUnsafe.user;
+        let userData = null;
         
-        if (user) {
-            // Обновляем баланс на основе ID пользователя
-            let fakeBalance = 1000 + (user.id % 1000);
-            document.getElementById('balance').textContent = '$' + fakeBalance + '.00';
+        // Функция для отправки данных на сервер
+        async function sendToServer(action, data = {}) {
+            try {
+                // Здесь будет отправка на наш бот
+                console.log('Sending to server:', action, data);
+                
+                // Временно эмулируем ответ
+                return {
+                    success: true,
+                    user: {
+                        id: user.id,
+                        balance: 1000 + (user.id % 1000),
+                        profit_rate: 1.5,
+                        invested: 500,
+                        referrals: ['123', '456'],
+                        level: 'bronze',
+                        first_name: user.first_name
+                    }
+                };
+            } catch (error) {
+                console.error('Server error:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        
+        // Загружаем данные пользователя
+        async function loadUserData() {
+            if (user) {
+                // Отправляем запрос на регистрацию/получение данных
+                const response = await sendToServer('get_user', {
+                    user_id: user.id,
+                    username: user.username,
+                    first_name: user.first_name
+                });
+                
+                if (response.success) {
+                    userData = response.user;
+                    updateUI();
+                }
+            }
             
-            // Добавляем приветствие
-            document.querySelector('h1').innerHTML = `🚀 Добро пожаловать, ${user.first_name}!`;
+            // Скрываем загрузку, показываем контент
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+        }
+        
+        // Обновляем интерфейс
+        function updateUI() {
+            if (userData) {
+                // Приветствие
+                document.getElementById('welcome-text').textContent = `🚀 Добро пожаловать, ${userData.first_name}!`;
+                
+                // Баланс
+                document.getElementById('balance').textContent = `$${userData.balance.toFixed(2)}`;
+                document.getElementById('user-id').textContent = userData.id;
+                
+                // Статистика
+                document.getElementById('profit-rate').textContent = `${userData.profit_rate}%/день`;
+                document.getElementById('referrals-count').textContent = userData.referrals ? userData.referrals.length : 0;
+                document.getElementById('invested').textContent = `$${userData.invested.toFixed(2)}`;
+                
+                // Уровень
+                const levels = {
+                    'bronze': '🥉 Латунь',
+                    'silver': '🥈 Серебро',
+                    'gold': '🥇 Золото',
+                    'platinum': '💎 Платина'
+                };
+                document.getElementById('user-level').textContent = levels[userData.level] || 'Латунь';
+            }
         }
         
         // Функции кнопок
         function deposit() {
             tg.showPopup({
                 title: '💳 Пополнение баланса',
-                message: 'Минимальная сумма: $50\n\nВыберите способ оплаты:',
+                message: 'Выберите сумму пополнения:',
                 buttons: [
-                    {id: 'card', text: '💳 Банковская карта', type: 'default'},
-                    {id: 'crypto', text: '₿ Криптовалюта', type: 'default'},
-                    {id: 'other', text: '💎 Другие способы', type: 'default'},
+                    {id: '50', text: '$50', type: 'default'},
+                    {id: '100', text: '$100', type: 'default'},
+                    {id: '500', text: '$500', type: 'default'},
+                    {id: '1000', text: '$1000', type: 'default'},
+                    {id: 'custom', text: '💰 Другая сумма', type: 'default'},
                     {id: 'cancel', text: '❌ Отмена', type: 'cancel'}
                 ]
             });
         }
         
         function withdraw() {
-            tg.showAlert('💰 Вывод средств доступен после 25 дней инвестирования.\n\nТекущий баланс для вывода: $' + (500 + (user ? user.id % 500 : 0)) + '.00');
+            const available = userData ? userData.balance : 0;
+            tg.showAlert(`💰 Доступно для вывода: $${available.toFixed(2)}\n\n⏱️ Вывод тела депозита доступен через 25 дней после инвестирования.`);
         }
         
         function showRefs() {
             if (user) {
-                let refLink = 'https://t.me/' + (tg.initDataUnsafe.user.username || 'your_bot') + '?start=ref' + user.id;
-                tg.showAlert('👥 Ваша реферальная ссылка:\n\n' + refLink + '\n\n💎 Получайте 10% от депозита рефералов!');
+                let refLink = `https://t.me/${tg.initDataUnsafe.user.username || 'your_bot'}?start=ref${user.id}`;
+                let refCount = userData ? (userData.referrals ? userData.referrals.length : 0) : 0;
+                let refBonus = refCount * 50;
+                
+                tg.showAlert(
+                    '👥 РЕФЕРАЛЬНАЯ СИСТЕМА\n\n' +
+                    `🔗 Ваша ссылка:\n${refLink}\n\n` +
+                    `📊 Статистика:\n` +
+                    `• Рефералов: ${refCount}\n` +
+                    `• Заработано: $${refBonus}.00\n\n` +
+                    '💎 Условия:\n' +
+                    '• 10% от депозита реферала\n' +
+                    '• 5% от его ежедневной прибыли\n' +
+                    '• 3 уровня рефералов\n\n' +
+                    '🏆 За каждых 5 рефералов +0.1% к вашей доходности!'
+                );
             }
         }
         
         function showCareer() {
-            tg.showAlert('🏆 Система карьерного роста:\n\n• Латунь: 1.5%/день\n• Серебро: 2.0%/день\n• Золото: 2.5%/день\n• Платина: 3.0%/день\n\nПригласите 5 друзей для перехода на следующий уровень!');
+            tg.showAlert(
+                '🏆 КАРЬЕРНЫЙ РОСТ\n\n' +
+                '🥉 Латунь (базовый):\n' +
+                '• Доходность: 1.5%/день\n' +
+                '• Мин. депозит: $50\n' +
+                '• Рефералов: 0+\n\n' +
+                '🥈 Серебро (5 рефералов):\n' +
+                '• Доходность: 2.0%/день\n' +
+                '• Мин. депозит: $200\n' +
+                '• Бонус: +5% к реферальным\n\n' +
+                '🥇 Золото (20 рефералов):\n' +
+                '• Доходность: 2.5%/день\n' +
+                '• Мин. депозит: $1000\n' +
+                '• Бонус: +10% к реферальным\n\n' +
+                '💎 Платина (50 рефералов):\n' +
+                '• Доходность: 3.0%/день\n' +
+                '• Мин. депозит: $5000\n' +
+                '• Бонус: +15% к реферальным'
+            );
         }
         
         function showCalculator() {
-            let profit = 1500 * 0.015 * 30; // Пример расчета
-            tg.showAlert('🧮 Калькулятор доходности:\n\nПри инвестиции $1500 на 30 дней:\n\n📈 Ежемесячная прибыль: $' + profit.toFixed(2) + '\n💵 Итоговая сумма: $' + (1500 + profit).toFixed(2));
+            let amount = userData ? userData.invested || 1000 : 1000;
+            let rate = userData ? userData.profit_rate || 1.5 : 1.5;
+            
+            let daily = amount * (rate / 100);
+            let monthly = daily * 30;
+            let yearly = daily * 365;
+            
+            tg.showAlert(
+                '🧮 КАЛЬКУЛЯТОР ДОХОДНОСТИ\n\n' +
+                `При инвестиции: $${amount.toFixed(2)}\n` +
+                `Доходность: ${rate}%/день\n\n` +
+                '📈 Прибыль:\n' +
+                `• За день: $${daily.toFixed(2)}\n` +
+                `• За месяц (30 дней): $${monthly.toFixed(2)}\n` +
+                `• За год: $${yearly.toFixed(2)}\n\n` +
+                '💵 Итоговые суммы:\n' +
+                `• Через месяц: $${(amount + monthly).toFixed(2)}\n` +
+                `• Через год: $${(amount + yearly).toFixed(2)}`
+            );
         }
         
-        function showSupport() {
-            tg.openLink('https://t.me/');
+        function showHistory() {
+            tg.showAlert('📋 ИСТОРИЯ ОПЕРАЦИЙ\n\nПока что операций нет.\n\nПосле пополнения баланса здесь будет отображаться история всех транзакций.');
         }
         
         // Кнопка "Назад" в Telegram
@@ -175,6 +310,9 @@
         tg.BackButton.onClick(function() {
             tg.close();
         });
+        
+        // Загружаем данные при старте
+        loadUserData();
     </script>
 </body>
 </html>
