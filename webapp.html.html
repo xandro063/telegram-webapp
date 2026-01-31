@@ -7,144 +7,41 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Arial;
             margin: 0;
             padding: 20px;
-            background: #1a1a2e;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
+        h1 { text-align: center; }
         .card {
-            background: #16213e;
-            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
             padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #4cc9f0;
-        }
-        .balance {
-            font-size: 48px;
-            text-align: center;
-            color: #00ff88;
+            border-radius: 15px;
             margin: 20px 0;
         }
         button {
-            background: #4361ee;
+            background: #4CAF50;
             color: white;
             border: none;
             padding: 15px;
-            border-radius: 10px;
             width: 100%;
-            font-size: 16px;
+            border-radius: 10px;
             margin: 10px 0;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #3a56d4;
-        }
-        .menu {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .menu button {
-            background: #7209b7;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>💰 ИНВЕСТ ПРИЛОЖЕНИЕ</h1>
-        
-        <div class="card">
-            <h2>Ваш баланс</h2>
-            <div class="balance" id="balance">$0.00</div>
-            <button onclick="deposit()">💳 Пополнить</button>
-            <button onclick="withdraw()">📤 Вывести</button>
-        </div>
-        
-        <div class="card">
-            <h2>📊 Статистика</h2>
-            <p>👤 Пользователь: <span id="username">Гость</span></p>
-            <p>📈 Доходность: <span id="profit">1.5%</span>/день</p>
-            <p>👥 Рефералы: <span id="refs">0</span></p>
-        </div>
-        
-        <div class="menu">
-            <button onclick="showProfile()">👤 Профиль</button>
-            <button onclick="showHistory()">📋 История</button>
-            <button onclick="showRefs()">👥 Рефералы</button>
-            <button onclick="showHelp()">❓ Помощь</button>
-        </div>
+    <h1>✅ Web App работает!</h1>
+    <div class="card">
+        <p>Приложение загружено через GitHub Pages</p>
+        <button onclick="alert('Успех!')">Тест</button>
     </div>
-
+    
     <script>
-        // Telegram Web App API
         let tg = window.Telegram.WebApp;
-        
-        // Расширяем на весь экран
         tg.expand();
-        tg.setHeaderColor('#1a1a2e');
-        tg.setBackgroundColor('#1a1a2e');
-        
-        // Получаем данные пользователя из Telegram
-        let user = tg.initDataUnsafe.user;
-        
-        if (user) {
-            document.getElementById('username').textContent = user.first_name;
-            // Делаем тестовый баланс на основе ID
-            document.getElementById('balance').textContent = '$' + (user.id % 1000) + '.00';
-        }
-        
-        // Функции кнопок
-        function deposit() {
-            tg.showPopup({
-                title: 'Пополнение счета',
-                message: 'Минимальная сумма: $50',
-                buttons: [
-                    {id: 'card', text: '💳 Карта', type: 'default'},
-                    {id: 'crypto', text: '₿ Crypto', type: 'default'},
-                    {id: 'cancel', text: '❌ Отмена', type: 'cancel'}
-                ]
-            });
-        }
-        
-        function withdraw() {
-            tg.showAlert('Вывод доступен после 25 дней инвестирования');
-        }
-        
-        function showProfile() {
-            tg.showAlert('Ваш профиль загружается...');
-        }
-        
-        function showRefs() {
-            if (user) {
-                let refLink = 'https://t.me/' + tg.initDataUnsafe.user.username + '_bot?start=ref' + user.id;
-                tg.showAlert('Ваша реф ссылка: ' + refLink);
-            }
-        }
-        
-        function showHelp() {
-            tg.openLink('https://t.me/your_support_bot');
-        }
-        
-        // Отправляем данные в бота при закрытии
-        tg.onEvent('viewportChanged', function() {
-            console.log('Web App закрывается');
-        });
-        
-        // Кнопка "Назад" в Telegram
-        tg.BackButton.show();
-        tg.BackButton.onClick(function() {
-            tg.close();
-        });
+        tg.ready();
     </script>
 </body>
 </html>
