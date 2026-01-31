@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>💰 Инвестиции</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .balance {
+            font-size: 48px;
+            text-align: center;
+            color: #00ff88;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        button {
+            background: #4361ee;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            width: 100%;
+            font-size: 16px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #3a56d4;
+            transform: translateY(-2px);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ИНВЕСТИЦИОННОЕ ПРИЛОЖЕНИЕ</h1>
+        
+        <div class="card">
+            <h2>Ваш баланс</h2>
+            <div class="balance" id="balance">$1,250.50</div>
+            <button onclick="deposit()">💳 Пополнить баланс</button>
+            <button onclick="withdraw()">📤 Вывести средства</button>
+        </div>
+        
+        <div class="card">
+            <h2>📊 Статистика</h2>
+            <div class="stats">
+                <div class="stat-item">
+                    <div>📈 Доходность</div>
+                    <div style="color: #00ff88; font-weight: bold;">1.5%/день</div>
+                </div>
+                <div class="stat-item">
+                    <div>👥 Рефералы</div>
+                    <div style="font-weight: bold;">3</div>
+                </div>
+                <div class="stat-item">
+                    <div>⏱️ Дней</div>
+                    <div style="font-weight: bold;">12</div>
+                </div>
+                <div class="stat-item">
+                    <div>🏆 Уровень</div>
+                    <div style="color: #FFD700; font-weight: bold;">Латунь</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <button onclick="showRefs()">👥 Реферальная система</button>
+            <button onclick="showCareer()">🏆 Карьерный рост</button>
+            <button onclick="showCalculator()">🧮 Калькулятор доходности</button>
+            <button onclick="showSupport()">💬 Поддержка</button>
+        </div>
+    </div>
+
+    <script>
+        // Telegram Web App API
+        let tg = window.Telegram.WebApp;
+        
+        // Расширяем на весь экран
+        tg.expand();
+        tg.setHeaderColor('#667eea');
+        tg.setBackgroundColor('#667eea');
+        tg.ready();
+        
+        // Получаем данные пользователя
+        let user = tg.initDataUnsafe.user;
+        
+        if (user) {
+            // Обновляем баланс на основе ID пользователя
+            let fakeBalance = 1000 + (user.id % 1000);
+            document.getElementById('balance').textContent = '$' + fakeBalance + '.00';
+            
+            // Добавляем приветствие
+            document.querySelector('h1').innerHTML = `🚀 Добро пожаловать, ${user.first_name}!`;
+        }
+        
+        // Функции кнопок
+        function deposit() {
+            tg.showPopup({
+                title: '💳 Пополнение баланса',
+                message: 'Минимальная сумма: $50\n\nВыберите способ оплаты:',
+                buttons: [
+                    {id: 'card', text: '💳 Банковская карта', type: 'default'},
+                    {id: 'crypto', text: '₿ Криптовалюта', type: 'default'},
+                    {id: 'other', text: '💎 Другие способы', type: 'default'},
+                    {id: 'cancel', text: '❌ Отмена', type: 'cancel'}
+                ]
+            });
+        }
+        
+        function withdraw() {
+            tg.showAlert('💰 Вывод средств доступен после 25 дней инвестирования.\n\nТекущий баланс для вывода: $' + (500 + (user ? user.id % 500 : 0)) + '.00');
+        }
+        
+        function showRefs() {
+            if (user) {
+                let refLink = 'https://t.me/' + (tg.initDataUnsafe.user.username || 'your_bot') + '?start=ref' + user.id;
+                tg.showAlert('👥 Ваша реферальная ссылка:\n\n' + refLink + '\n\n💎 Получайте 10% от депозита рефералов!');
+            }
+        }
+        
+        function showCareer() {
+            tg.showAlert('🏆 Система карьерного роста:\n\n• Латунь: 1.5%/день\n• Серебро: 2.0%/день\n• Золото: 2.5%/день\n• Платина: 3.0%/день\n\nПригласите 5 друзей для перехода на следующий уровень!');
+        }
+        
+        function showCalculator() {
+            let profit = 1500 * 0.015 * 30; // Пример расчета
+            tg.showAlert('🧮 Калькулятор доходности:\n\nПри инвестиции $1500 на 30 дней:\n\n📈 Ежемесячная прибыль: $' + profit.toFixed(2) + '\n💵 Итоговая сумма: $' + (1500 + profit).toFixed(2));
+        }
+        
+        function showSupport() {
+            tg.openLink('https://t.me/');
+        }
+        
+        // Кнопка "Назад" в Telegram
+        tg.BackButton.show();
+        tg.BackButton.onClick(function() {
+            tg.close();
+        });
+    </script>
+</body>
+</html>
