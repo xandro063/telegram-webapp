@@ -75,9 +75,22 @@
             text-align: center;
             padding: 20px;
         }
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00ff88;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
+    <div class="notification" id="notification"></div>
     <div class="container">
         <div class="loader" id="loader">🔄 Загрузка данных...</div>
         
@@ -90,8 +103,8 @@
                 <div style="text-align: center; margin-bottom: 15px;">
                     <small>ID: <span id="user-id">000000</span></small>
                 </div>
-                <button onclick="deposit()">💳 Пополнить баланс</button>
-                <button onclick="withdraw()">📤 Вывести средства</button>
+                <button onclick="showDepositPopup()">💳 Пополнить баланс</button>
+                <button onclick="showWithdrawPopup()">📤 Вывести средства</button>
             </div>
             
             <div class="card">
@@ -121,6 +134,7 @@
                 <button onclick="showCareer()">🏆 Карьерный рост</button>
                 <button onclick="showCalculator()">🧮 Калькулятор доходности</button>
                 <button onclick="showHistory()">📋 История операций</button>
+                <button onclick="refreshData()">🔄 Обновить данные</button>
             </div>
         </div>
     </div>
@@ -128,6 +142,7 @@
     <script>
         // Telegram Web App API
         let tg = window.Telegram.WebApp;
+        let user = tg.initDataUnsafe.user;
         
         // Инициализация Web App
         tg.ready();
@@ -139,58 +154,20 @@
         document.getElementById('loader').style.display = 'block';
         document.getElementById('app-content').style.display = 'none';
         
-        // Получаем данные пользователя из Telegram
-        let user = tg.initDataUnsafe.user;
-        let userData = null;
-        
-        // Функция для отправки данных на сервер
-        async function sendToServer(action, data = {}) {
-            try {
-                // Здесь будет отправка на наш бот
-                console.log('Sending to server:', action, data);
-                
-                // Временно эмулируем ответ
-                return {
-                    success: true,
-                    user: {
-                        id: user.id,
-                        balance: 1000 + (user.id % 1000),
-                        profit_rate: 1.5,
-                        invested: 500,
-                        referrals: ['123', '456'],
-                        level: 'bronze',
-                        first_name: user.first_name
-                    }
-                };
-            } catch (error) {
-                console.error('Server error:', error);
-                return { success: false, error: error.message };
-            }
-        }
-        
-        // Загружаем данные пользователя
-        async function loadUserData() {
-            if (user) {
-                // Отправляем запрос на регистрацию/получение данных
-                const response = await sendToServer('get_user', {
-                    user_id: user.id,
-                    username: user.username,
-                    first_name: user.first_name
-                });
-                
-                if (response.success) {
-                    userData = response.user;
-                    updateUI();
-                }
-            }
+        // Показать уведомление
+        function showNotification(text, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = text;
+            notification.style.background = isError ? '#ff4444' : '#00ff88';
+            notification.style.display = 'block';
             
-            // Скрываем загрузку, показываем контент
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
         }
         
-        // Обновляем интерфейс
-        function updateUI() {
+        // Обновляем интерфейс данными
+        function updateUI(userData) {
             if (userData) {
                 // Приветствие
                 document.getElementById('welcome-text').textContent = `🚀 Добро пожаловать, ${userData.first_name}!`;
@@ -215,8 +192,41 @@
             }
         }
         
-        // Функции кнопок
-        function deposit() {
+        // Загружаем данные пользователя
+        function loadUserData() {
+            if (user) {
+                // Отправляем запрос на получение данных
+                tg.sendData(JSON.stringify({
+                    action: 'get_user',
+                    user_id: user.id,
+                    username: user.username,
+                    first_name: user.first_name,
+                    timestamp: new Date().toISOString()
+                }));
+                
+                // Пока используем тестовые данные
+                const testData = {
+                    id: user.id,
+                    first_name: user.first_name,
+                    balance: 1250.50,
+                    profit_rate: 1.5,
+                    invested: 500,
+                    referrals: [],
+                    level: 'bronze'
+                };
+                
+                updateUI(testData);
+            }
+            
+            // Скрываем загрузку, показываем контент
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+            }, 1000);
+        }
+        
+        // ПОПОЛНЕНИЕ БАЛАНСА
+        function showDepositPopup() {
             tg.showPopup({
                 title: '💳 Пополнение баланса',
                 message: 'Выберите сумму пополнения:',
@@ -225,84 +235,151 @@
                     {id: '100', text: '$100', type: 'default'},
                     {id: '500', text: '$500', type: 'default'},
                     {id: '1000', text: '$1000', type: 'default'},
-                    {id: 'custom', text: '💰 Другая сумма', type: 'default'},
                     {id: 'cancel', text: '❌ Отмена', type: 'cancel'}
                 ]
+            }).then(function(btnId) {
+                if (btnId !== 'cancel' && btnId) {
+                    const amount = parseInt(btnId);
+                    
+                    // Отправляем запрос на пополнение
+                    tg.sendData(JSON.stringify({
+                        action: 'deposit',
+                        user_id: user.id,
+                        data: { amount: amount },
+                        timestamp: new Date().toISOString()
+                    }));
+                    
+                    showNotification(`✅ Запрос на пополнение $${amount} отправлен!`);
+                    
+                    // Обновляем баланс локально
+                    const balanceElem = document.getElementById('balance');
+                    const currentBalance = parseFloat(balanceElem.textContent.replace('$', ''));
+                    balanceElem.textContent = `$${(currentBalance + amount).toFixed(2)}`;
+                }
             });
         }
         
-        function withdraw() {
-            const available = userData ? userData.balance : 0;
-            tg.showAlert(`💰 Доступно для вывода: $${available.toFixed(2)}\n\n⏱️ Вывод тела депозита доступен через 25 дней после инвестирования.`);
+        // ВЫВОД СРЕДСТВ
+        function showWithdrawPopup() {
+            const currentBalance = parseFloat(document.getElementById('balance').textContent.replace('$', ''));
+            
+            tg.showPopup({
+                title: '📤 Вывод средств',
+                message: `Доступно: $${currentBalance.toFixed(2)}\nВведите сумму вывода:`,
+                buttons: [
+                    {id: 'half', text: '50% от баланса', type: 'default'},
+                    {id: 'all', text: '100% от баланса', type: 'default'},
+                    {id: 'custom', text: '💰 Другая сумма', type: 'default'},
+                    {id: 'cancel', text: '❌ Отмена', type: 'cancel'}
+                ]
+            }).then(function(btnId) {
+                if (btnId === 'cancel') return;
+                
+                let amount = 0;
+                if (btnId === 'half') amount = currentBalance * 0.5;
+                else if (btnId === 'all') amount = currentBalance;
+                else if (btnId === 'custom') {
+                    tg.showPopup({
+                        title: 'Введите сумму',
+                        message: `Максимум: $${currentBalance.toFixed(2)}`,
+                        buttons: [
+                            {id: 'confirm', text: 'Подтвердить', type: 'default'},
+                            {id: 'cancel', text: 'Отмена', type: 'cancel'}
+                        ]
+                    });
+                    return;
+                }
+                
+                if (amount > 0) {
+                    tg.sendData(JSON.stringify({
+                        action: 'withdraw',
+                        user_id: user.id,
+                        data: { amount: amount },
+                        timestamp: new Date().toISOString()
+                    }));
+                    
+                    showNotification(`✅ Заявка на вывод $${amount.toFixed(2)} создана!`);
+                }
+            });
         }
         
+        // РЕФЕРАЛЬНАЯ СИСТЕМА
         function showRefs() {
             if (user) {
                 let refLink = `https://t.me/${tg.initDataUnsafe.user.username || 'your_bot'}?start=ref${user.id}`;
-                let refCount = userData ? (userData.referrals ? userData.referrals.length : 0) : 0;
-                let refBonus = refCount * 50;
+                const refCount = parseInt(document.getElementById('referrals-count').textContent);
                 
                 tg.showAlert(
                     '👥 РЕФЕРАЛЬНАЯ СИСТЕМА\n\n' +
                     `🔗 Ваша ссылка:\n${refLink}\n\n` +
                     `📊 Статистика:\n` +
                     `• Рефералов: ${refCount}\n` +
-                    `• Заработано: $${refBonus}.00\n\n` +
+                    `• Заработано: $${(refCount * 50).toFixed(2)}\n\n` +
                     '💎 Условия:\n' +
                     '• 10% от депозита реферала\n' +
                     '• 5% от его ежедневной прибыли\n' +
-                    '• 3 уровня рефералов\n\n' +
-                    '🏆 За каждых 5 рефералов +0.1% к вашей доходности!'
+                    '• 3 уровня рефералов'
                 );
             }
         }
         
+        // КАРЬЕРНЫЙ РОСТ
         function showCareer() {
             tg.showAlert(
                 '🏆 КАРЬЕРНЫЙ РОСТ\n\n' +
                 '🥉 Латунь (базовый):\n' +
                 '• Доходность: 1.5%/день\n' +
-                '• Мин. депозит: $50\n' +
-                '• Рефералов: 0+\n\n' +
+                '• Мин. депозит: $50\n\n' +
                 '🥈 Серебро (5 рефералов):\n' +
                 '• Доходность: 2.0%/день\n' +
-                '• Мин. депозит: $200\n' +
-                '• Бонус: +5% к реферальным\n\n' +
+                '• Мин. депозит: $200\n\n' +
                 '🥇 Золото (20 рефералов):\n' +
                 '• Доходность: 2.5%/день\n' +
-                '• Мин. депозит: $1000\n' +
-                '• Бонус: +10% к реферальным\n\n' +
+                '• Мин. депозит: $1000\n\n' +
                 '💎 Платина (50 рефералов):\n' +
                 '• Доходность: 3.0%/день\n' +
-                '• Мин. депозит: $5000\n' +
-                '• Бонус: +15% к реферальным'
+                '• Мин. депозит: $5000'
             );
         }
         
+        // КАЛЬКУЛЯТОР ДОХОДНОСТИ
         function showCalculator() {
-            let amount = userData ? userData.invested || 1000 : 1000;
-            let rate = userData ? userData.profit_rate || 1.5 : 1.5;
+            const invested = parseFloat(document.getElementById('invested').textContent.replace('$', '')) || 1000;
+            const rate = parseFloat(document.getElementById('profit-rate').textContent) || 1.5;
             
-            let daily = amount * (rate / 100);
-            let monthly = daily * 30;
-            let yearly = daily * 365;
+            const daily = invested * (rate / 100);
+            const monthly = daily * 30;
+            const yearly = daily * 365;
             
             tg.showAlert(
                 '🧮 КАЛЬКУЛЯТОР ДОХОДНОСТИ\n\n' +
-                `При инвестиции: $${amount.toFixed(2)}\n` +
+                `При инвестиции: $${invested.toFixed(2)}\n` +
                 `Доходность: ${rate}%/день\n\n` +
                 '📈 Прибыль:\n' +
                 `• За день: $${daily.toFixed(2)}\n` +
-                `• За месяц (30 дней): $${monthly.toFixed(2)}\n` +
+                `• За месяц: $${monthly.toFixed(2)}\n` +
                 `• За год: $${yearly.toFixed(2)}\n\n` +
                 '💵 Итоговые суммы:\n' +
-                `• Через месяц: $${(amount + monthly).toFixed(2)}\n` +
-                `• Через год: $${(amount + yearly).toFixed(2)}`
+                `• Через месяц: $${(invested + monthly).toFixed(2)}\n` +
+                `• Через год: $${(invested + yearly).toFixed(2)}`
             );
         }
         
+        // ИСТОРИЯ ОПЕРАЦИЙ
         function showHistory() {
             tg.showAlert('📋 ИСТОРИЯ ОПЕРАЦИЙ\n\nПока что операций нет.\n\nПосле пополнения баланса здесь будет отображаться история всех транзакций.');
+        }
+        
+        // ОБНОВИТЬ ДАННЫЕ
+        function refreshData() {
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('app-content').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                showNotification('✅ Данные обновлены!');
+            }, 1000);
         }
         
         // Кнопка "Назад" в Telegram
