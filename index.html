@@ -87,6 +87,15 @@
             display: none;
             z-index: 1000;
         }
+        .error-card {
+            text-align: center;
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+        .error-card ol {
+            text-align: left;
+            padding-left: 20px;
+        }
     </style>
 </head>
 <body>
@@ -95,47 +104,7 @@
         <div class="loader" id="loader">🔄 Загрузка данных...</div>
         
         <div id="app-content">
-            <h1 id="welcome-text">🚀 ИНВЕСТИЦИОННОЕ ПРИЛОЖЕНИЕ</h1>
-            
-            <div class="card">
-                <h2>Ваш баланс</h2>
-                <div class="balance" id="balance">$0.00</div>
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <small>ID: <span id="user-id">000000</span></small>
-                </div>
-                <button onclick="showDepositPopup()">💳 Пополнить баланс</button>
-                <button onclick="showWithdrawPopup()">📤 Вывести средства</button>
-            </div>
-            
-            <div class="card">
-                <h2>📊 Статистика</h2>
-                <div class="stats">
-                    <div class="stat-item">
-                        <div>📈 Доходность</div>
-                        <div style="color: #00ff88; font-weight: bold;" id="profit-rate">1.5%/день</div>
-                    </div>
-                    <div class="stat-item">
-                        <div>👥 Рефералы</div>
-                        <div style="font-weight: bold;" id="referrals-count">0</div>
-                    </div>
-                    <div class="stat-item">
-                        <div>💰 Инвестировано</div>
-                        <div style="font-weight: bold;" id="invested">$0.00</div>
-                    </div>
-                    <div class="stat-item">
-                        <div>🏆 Уровень</div>
-                        <div style="color: #FFD700; font-weight: bold;" id="user-level">Латунь</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <button onclick="showRefs()">👥 Реферальная система</button>
-                <button onclick="showCareer()">🏆 Карьерный рост</button>
-                <button onclick="showCalculator()">🧮 Калькулятор доходности</button>
-                <button onclick="showHistory()">📋 История операций</button>
-                <button onclick="refreshData()">🔄 Обновить данные</button>
-            </div>
+            <!-- Контент будет загружен динамически -->
         </div>
     </div>
 
@@ -144,15 +113,46 @@
         let tg = window.Telegram.WebApp;
         let user = tg.initDataUnsafe.user;
         
-        // Инициализация Web App
-        tg.ready();
-        tg.expand();
-        tg.setHeaderColor('#667eea');
-        tg.setBackgroundColor('#667eea');
-        
         // Показываем загрузку
         document.getElementById('loader').style.display = 'block';
-        document.getElementById('app-content').style.display = 'none';
+        
+        // Проверяем что данные пользователя получены
+        if (!user || !user.id) {
+            console.error("❌ User data not received from Telegram!");
+            // Показываем ошибку
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('app-content').innerHTML = `
+                <div class="card error-card">
+                    <h2>❌ Ошибка загрузки</h2>
+                    <p><b>Telegram не передал данные пользователя.</b></p>
+                    <p>ID пользователя: ${user ? 'есть' : 'нет'}</p>
+                    <p><b>Решение:</b></p>
+                    <ol>
+                        <li>Откройте приложение через кнопку меню бота</li>
+                        <li>Используйте последнюю версию Telegram</li>
+                        <li>Попробуйте в Telegram Desktop</li>
+                        <li>Перезагрузите приложение</li>
+                    </ol>
+                    <button onclick="location.reload()">🔄 Перезагрузить приложение</button>
+                    <button onclick="testWithData()">🧪 Тест с данными</button>
+                </div>
+            `;
+            document.getElementById('app-content').style.display = 'block';
+        } else {
+            // Данные есть - загружаем приложение
+            loadUserData();
+        }
+        
+        // Тест с тестовыми данными
+        function testWithData() {
+            user = {
+                id: 123456789,
+                first_name: "Тестовый",
+                username: "test_user"
+            };
+            loadUserData();
+            showNotification("✅ Загружены тестовые данные");
+        }
         
         // Показать уведомление
         function showNotification(text, isError = false) {
@@ -169,32 +169,68 @@
         // Обновляем интерфейс данными
         function updateUI(userData) {
             if (userData) {
-                // Приветствие
-                document.getElementById('welcome-text').textContent = `🚀 Добро пожаловать, ${userData.first_name}!`;
+                const appContent = `
+                    <h1 id="welcome-text">🚀 Добро пожаловать, ${userData.first_name}!</h1>
+                    
+                    <div class="card">
+                        <h2>Ваш баланс</h2>
+                        <div class="balance" id="balance">$${userData.balance.toFixed(2)}</div>
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <small>ID: <span id="user-id">${userData.id}</span></small>
+                        </div>
+                        <button onclick="showDepositPopup()">💳 Пополнить баланс</button>
+                        <button onclick="showWithdrawPopup()">📤 Вывести средства</button>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>📊 Статистика</h2>
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div>📈 Доходность</div>
+                                <div style="color: #00ff88; font-weight: bold;" id="profit-rate">${userData.profit_rate}%/день</div>
+                            </div>
+                            <div class="stat-item">
+                                <div>👥 Рефералы</div>
+                                <div style="font-weight: bold;" id="referrals-count">${userData.referrals ? userData.referrals.length : 0}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div>💰 Инвестировано</div>
+                                <div style="font-weight: bold;" id="invested">$${userData.invested.toFixed(2)}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div>🏆 Уровень</div>
+                                <div style="color: #FFD700; font-weight: bold;" id="user-level">${getLevelName(userData.level)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <button onclick="showRefs()">👥 Реферальная система</button>
+                        <button onclick="showCareer()">🏆 Карьерный рост</button>
+                        <button onclick="showCalculator()">🧮 Калькулятор доходности</button>
+                        <button onclick="showHistory()">📋 История операций</button>
+                        <button onclick="refreshData()">🔄 Обновить данные</button>
+                    </div>
+                `;
                 
-                // Баланс
-                document.getElementById('balance').textContent = `$${userData.balance.toFixed(2)}`;
-                document.getElementById('user-id').textContent = userData.id;
-                
-                // Статистика
-                document.getElementById('profit-rate').textContent = `${userData.profit_rate}%/день`;
-                document.getElementById('referrals-count').textContent = userData.referrals ? userData.referrals.length : 0;
-                document.getElementById('invested').textContent = `$${userData.invested.toFixed(2)}`;
-                
-                // Уровень
-                const levels = {
-                    'bronze': '🥉 Латунь',
-                    'silver': '🥈 Серебро',
-                    'gold': '🥇 Золото',
-                    'platinum': '💎 Платина'
-                };
-                document.getElementById('user-level').textContent = levels[userData.level] || 'Латунь';
+                document.getElementById('app-content').innerHTML = appContent;
             }
+        }
+        
+        // Получить название уровня
+        function getLevelName(level) {
+            const levels = {
+                'bronze': '🥉 Латунь',
+                'silver': '🥈 Серебро',
+                'gold': '🥇 Золото',
+                'platinum': '💎 Платина'
+            };
+            return levels[level] || 'Латунь';
         }
         
         // Загружаем данные пользователя
         function loadUserData() {
-            if (user) {
+            if (user && user.id) {
                 // Отправляем запрос на получение данных
                 tg.sendData(JSON.stringify({
                     action: 'get_user',
@@ -204,10 +240,10 @@
                     timestamp: new Date().toISOString()
                 }));
                 
-                // Пока используем тестовые данные
+                // Используем тестовые данные для демонстрации
                 const testData = {
                     id: user.id,
-                    first_name: user.first_name,
+                    first_name: user.first_name || "Пользователь",
                     balance: 1250.50,
                     profit_rate: 1.5,
                     invested: 500,
@@ -222,6 +258,7 @@
             setTimeout(() => {
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
+                showNotification("✅ Приложение загружено!");
             }, 1000);
         }
         
@@ -306,7 +343,7 @@
         // РЕФЕРАЛЬНАЯ СИСТЕМА
         function showRefs() {
             if (user) {
-                let refLink = `https://t.me/${tg.initDataUnsafe.user.username || 'your_bot'}?start=ref${user.id}`;
+                let refLink = `https://t.me/${tg.initDataUnsafe.user?.username || 'your_bot'}?start=ref${user.id}`;
                 const refCount = parseInt(document.getElementById('referrals-count').textContent);
                 
                 tg.showAlert(
@@ -388,8 +425,11 @@
             tg.close();
         });
         
-        // Загружаем данные при старте
-        loadUserData();
+        // Инициализация Web App
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#667eea');
+        tg.setBackgroundColor('#667eea');
     </script>
 </body>
 </html>
