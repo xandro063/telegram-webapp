@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ===== VARIABLES ===== */
+        /* ===== ПЕРЕМЕННЫЕ ===== */
         :root {
             --primary: #FF6B35;
             --primary-dark: #E55A2B;
@@ -16,7 +16,6 @@
             --darker: #020617;
             --light: #F8FAFC;
             --card-bg: rgba(255, 255, 255, 0.08);
-            --card-hover: rgba(255, 255, 255, 0.12);
             --success: #00D68F;
             --warning: #FFAA00;
             --danger: #FF3D71;
@@ -31,6 +30,7 @@
             --glow: 0 0 40px rgba(255, 107, 53, 0.4);
         }
         
+        /* ===== СБРОС СТИЛЕЙ ===== */
         * {
             margin: 0;
             padding: 0;
@@ -48,7 +48,7 @@
                 radial-gradient(circle at 90% 80%, rgba(0, 201, 183, 0.15) 0%, transparent 40%);
         }
         
-        /* ===== LAYOUT ===== */
+        /* ===== КОНТЕЙНЕР ===== */
         .container {
             max-width: 480px;
             margin: 0 auto;
@@ -61,7 +61,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* ===== HEADER ===== */
+        /* ===== ЗАГОЛОВОК ===== */
         .header {
             display: flex;
             justify-content: space-between;
@@ -102,9 +102,10 @@
             border-radius: var(--radius-full);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
         }
         
-        /* ===== TABS ===== */
+        /* ===== ВКЛАДКИ ===== */
         .tabs {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -140,7 +141,7 @@
             font-size: 18px;
         }
         
-        /* ===== CARDS ===== */
+        /* ===== КАРТОЧКИ ===== */
         .card {
             background: var(--card-bg);
             backdrop-filter: blur(20px);
@@ -156,7 +157,7 @@
             transform: translateY(-5px);
         }
         
-        /* ===== BALANCE ===== */
+        /* ===== БАЛАНС ===== */
         .balance-card {
             text-align: center;
             background: linear-gradient(135deg, 
@@ -192,7 +193,7 @@
             margin: 10px 0;
         }
         
-        /* ===== BUTTONS ===== */
+        /* ===== КНОПКИ ===== */
         .btn {
             display: flex;
             align-items: center;
@@ -254,7 +255,7 @@
             background: rgba(255, 255, 255, 0.15);
         }
         
-        /* ===== STATS GRID ===== */
+        /* ===== СЕТКА СТАТИСТИКИ ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -289,116 +290,40 @@
             letter-spacing: 1px;
         }
         
-        /* ===== FORM ELEMENTS ===== */
-        .input-group {
-            margin: 20px 0;
-        }
-        
-        .input-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .input-field {
-            width: 100%;
-            padding: 18px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-md);
-            color: white;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .input-field:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        /* ===== PAYMENT METHODS ===== */
-        .payment-methods {
+        /* ===== ГРУППА КНОПОК ===== */
+        .btn-group {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin: 20px 0;
         }
         
-        .payment-method {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: var(--radius-md);
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        
-        .payment-method:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-3px);
-        }
-        
-        .payment-method.active {
-            border-color: var(--primary);
-            background: rgba(255, 107, 53, 0.1);
-        }
-        
-        .payment-icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-        
-        /* ===== HISTORY ===== */
-        .history-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .history-item {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 15px;
-            border-radius: var(--radius-md);
-            margin-bottom: 10px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .history-item.success {
-            border-left-color: var(--success);
-        }
-        
-        .history-item.pending {
-            border-left-color: var(--warning);
-        }
-        
-        .history-item.failed {
-            border-left-color: var(--danger);
-        }
-        
-        /* ===== LOADER ===== */
-        .loader {
+        /* ===== МОДАЛЬНОЕ ОКНО ===== */
+        .modal {
             display: none;
-            text-align: center;
-            padding: 60px 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
         
-        .loader-spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            margin: 0 auto 25px;
-            animation: spin 1s linear infinite;
+        .modal-content {
+            background: var(--darker);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow-lg);
         }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* ===== NOTIFICATION ===== */
+        /* ===== УВЕДОМЛЕНИЕ ===== */
         .notification {
             position: fixed;
             top: 20px;
@@ -413,10 +338,12 @@
             transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             max-width: 90%;
             text-align: center;
+            display: none;
         }
         
         .notification.show {
             transform: translateX(-50%) translateY(0);
+            display: block;
         }
         
         .notification.success {
@@ -427,7 +354,49 @@
             background: linear-gradient(135deg, var(--danger), #DB2C66);
         }
         
-        /* ===== RESPONSIVE ===== */
+        /* ===== ЗАГРУЗЧИК ===== */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--darker);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 25px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ===== СКРЫТЫЕ ЭЛЕМЕНТЫ ===== */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* ===== УТИЛИТЫ ===== */
+        .text-center { text-align: center; }
+        .mb-10 { margin-bottom: 10px; }
+        .mb-20 { margin-bottom: 20px; }
+        .mb-30 { margin-bottom: 30px; }
+        .mt-20 { margin-top: 20px; }
+        .mt-30 { margin-top: 30px; }
+        
+        /* ===== АДАПТИВНОСТЬ ===== */
         @media (max-width: 480px) {
             .container {
                 padding: 15px;
@@ -456,19 +425,7 @@
             }
         }
         
-        /* ===== UTILITY ===== */
-        .hidden {
-            display: none !important;
-        }
-        
-        .text-center { text-align: center; }
-        .mb-10 { margin-bottom: 10px; }
-        .mb-20 { margin-bottom: 20px; }
-        .mb-30 { margin-bottom: 30px; }
-        .mt-20 { margin-top: 20px; }
-        .mt-30 { margin-top: 30px; }
-        
-        /* Scrollbar */
+        /* ===== СКРОЛЛБАР ===== */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -489,85 +446,435 @@
     </style>
 </head>
 <body>
-    <!-- Notification -->
+    <!-- Уведомление -->
     <div class="notification" id="notification"></div>
     
-    <!-- Loader -->
+    <!-- Загрузчик -->
     <div class="loader" id="loader">
         <div class="loader-spinner"></div>
         <div style="font-size: 18px; font-weight: 600; margin-top: 20px;">
             <span style="background: linear-gradient(to right, var(--primary), #FFD166); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                Загрузка Capital Pro...
+                🦊 Загрузка Capital Pro...
             </span>
         </div>
     </div>
     
-    <!-- Main App -->
+    <!-- Модальное окно депозита -->
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <h3 style="color: var(--primary); margin-bottom: 20px;">💳 Пополнение баланса</h3>
+            <p style="margin-bottom: 20px; opacity: 0.8;">Выберите сумму для пополнения:</p>
+            
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="processDeposit(50)">
+                    <i class="fas fa-money-bill-wave"></i> $50
+                </button>
+                <button class="btn btn-success" onclick="processDeposit(100)">
+                    <i class="fas fa-money-bill-wave"></i> $100
+                </button>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="processDeposit(500)">
+                    <i class="fas fa-money-bill-wave"></i> $500
+                </button>
+                <button class="btn btn-success" onclick="processDeposit(1000)">
+                    <i class="fas fa-money-bill-wave"></i> $1000
+                </button>
+            </div>
+            
+            <button class="btn btn-secondary mt-20" onclick="closeModal('depositModal')">
+                <i class="fas fa-times"></i> Отмена
+            </button>
+        </div>
+    </div>
+    
+    <!-- Модальное окно вывода -->
+    <div class="modal" id="withdrawModal">
+        <div class="modal-content">
+            <h3 style="color: var(--primary); margin-bottom: 20px;">📤 Вывод средств</h3>
+            <p style="margin-bottom: 20px; opacity: 0.8;">Минимальная сумма: $50</p>
+            
+            <div class="input-group mb-20">
+                <label class="input-label">Сумма вывода ($)</label>
+                <input type="number" class="input-field" id="withdrawAmount" placeholder="50" min="50" value="50">
+            </div>
+            
+            <div class="input-group mb-20">
+                <label class="input-label">Способ получения</label>
+                <select class="input-field" id="withdrawMethod">
+                    <option value="card">💳 Банковская карта</option>
+                    <option value="crypto">₿ Криптовалюта (USDT)</option>
+                </select>
+            </div>
+            
+            <div class="input-group mb-20" id="cardDetails" style="display: none;">
+                <label class="input-label">Номер карты</label>
+                <input type="text" class="input-field" placeholder="0000 0000 0000 0000">
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="processWithdrawal()">
+                    <i class="fas fa-paper-plane"></i> Создать заявку
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal('withdrawModal')">
+                    <i class="fas fa-times"></i> Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Основное приложение -->
     <div class="container" id="app" style="display: none;">
-        <!-- Header -->
+        <!-- Шапка -->
         <div class="header">
             <div class="logo">
                 <div class="logo-icon">🦊</div>
                 <div class="logo-text">Capital Pro</div>
             </div>
             <div class="user-badge" id="userBadge">
-                <div style="font-size: 12px; opacity: 0.7;">ID: <span id="userId">--</span></div>
+                <div style="font-size: 12px; opacity: 0.7;">Загрузка...</div>
             </div>
         </div>
         
-        <!-- Tabs -->
+        <!-- Вкладки -->
         <div class="tabs">
-            <div class="tab active" data-tab="main" onclick="switchTab('main')">
+            <div class="tab active" onclick="switchTab('main')">
                 <i class="fas fa-home"></i>
                 <span>Главная</span>
             </div>
-            <div class="tab" data-tab="referrals" onclick="switchTab('referrals')">
+            <div class="tab" onclick="switchTab('referrals')">
                 <i class="fas fa-users"></i>
                 <span>Рефералы</span>
             </div>
-            <div class="tab" data-tab="career" onclick="switchTab('career')">
+            <div class="tab" onclick="switchTab('career')">
                 <i class="fas fa-trophy"></i>
                 <span>Карьера</span>
             </div>
-            <div class="tab" data-tab="support" onclick="switchTab('support')">
+            <div class="tab" onclick="switchTab('support')">
                 <i class="fas fa-headset"></i>
                 <span>Поддержка</span>
             </div>
         </div>
         
-        <!-- Tab Content -->
+        <!-- Содержимое вкладок -->
         <div id="tabContent">
-            <!-- MAIN TAB -->
+            <!-- ВКЛАДКА: ГЛАВНАЯ -->
             <div id="tab-main">
-                <!-- Balance Card -->
+                <!-- Карточка баланса -->
                 <div class="card balance-card">
                     <div class="balance-label">Ваш баланс</div>
-                    <div class="balance-amount" id="balance">$0.00</div>
-                    <div class="user-id">ID: <span id="user-id-display">--</span></div>
+                    <div class="balance-amount" id="balanceAmount">$0.00</div>
+                    <div class="user-id">ID: <span id="userId">--</span></div>
+                    
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
-                        <button class="btn btn-success" onclick="showDepositModal()">
+                        <button class="btn btn-success" onclick="openModal('depositModal')">
                             <i class="fas fa-plus"></i> Пополнить
                         </button>
-                        <button class="btn btn-secondary" onclick="showWithdrawModal()">
+                        <button class="btn btn-secondary" onclick="openModal('withdrawModal')">
                             <i class="fas fa-arrow-up"></i> Вывести
                         </button>
                     </div>
                 </div>
                 
-                <!-- Stats -->
+                <!-- Статистика -->
                 <div class="card">
-                    <h3 style="margin-bottom: 20px; color: var(--primary);">📊 Статистика</h3>
+                    <h3 style="color: var(--primary); margin-bottom: 20px;">📊 Статистика</h3>
+                    
                     <div class="stats-grid">
                         <div class="stat-item">
                             <div class="stat-icon">📈</div>
                             <div class="stat-value" id="profitRate">1.5%</div>
                             <div class="stat-label">Доходность</div>
                         </div>
+                        
                         <div class="stat-item">
                             <div class="stat-icon">👥</div>
                             <div class="stat-value" id="referralsCount">0</div>
                             <div class="stat-label">Рефералы</div>
                         </div>
+                        
                         <div class="stat-item">
                             <div class="stat-icon">💰</div>
-                            <div class="stat-value" id="invest
+                            <div class="stat-value" id="investedAmount">$0</div>
+                            <div class="stat-label">Инвестировано</div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">🏆</div>
+                            <div class="stat-value" id="userLevel">Bronze</div>
+                            <div class="stat-label">Уровень</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Быстрые действия -->
+                    <div class="btn-group mt-20">
+                        <button class="btn btn-primary" onclick="loadUserData()">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
+                        <button class="btn btn-secondary" onclick="showHistory()">
+                            <i class="fas fa-history"></i> История
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Ежедневная прибыль -->
+                <div class="card">
+                    <h3 style="color: var(--primary); margin-bottom: 20px;">📈 Ежедневная прибыль</h3>
+                    
+                    <div style="background: rgba(0, 255, 136, 0.1); padding: 20px; border-radius: var(--radius-md); border: 1px solid rgba(0, 255, 136, 0.3);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>Сегодня:</span>
+                            <span style="color: var(--success); font-weight: 600;" id="dailyProfit">$0.00</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>За месяц:</span>
+                            <span style="color: var(--success); font-weight: 600;" id="monthlyProfit">$0.00</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Всего заработано:</span>
+                            <span style="color: var(--success); font-weight: 600;" id="totalEarned">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ВКЛАДКА: РЕФЕРАЛЫ -->
+            <div id="tab-referrals" class="hidden">
+                <div class="card">
+                    <h3 style="color: var(--primary); margin-bottom: 20px;">👥 Реферальная система</h3>
+                    
+                    <!-- Реферальная ссылка -->
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                        <p style="margin-bottom: 10px; opacity: 0.8;">Ваша реферальная ссылка:</p>
+                        <div id="referralCode" style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: var(--radius-md); font-family: monospace; word-break: break-all; cursor: pointer; margin-bottom: 20px;"
+                             onclick="copyReferralLink()">
+                            Загрузка...
+                        </div>
+                        <button class="btn btn-primary" onclick="copyReferralLink()">
+                            <i class="fas fa-copy"></i> Копировать ссылку
+                        </button>
+                    </div>
+                    
+                    <!-- Статистика рефералов -->
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-value" id="totalReferrals">0</div>
+                            <div class="stat-label">Всего рефералов</div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">💰</div>
+                            <div class="stat-value" id="referralEarnings">$0</div>
+                            <div class="stat-label">Заработано</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Условия -->
+                    <div style="background: rgba(255, 107, 53, 0.1); padding: 20px; border-radius: var(--radius-md); border: 1px solid rgba(255, 107, 53, 0.3); margin-top: 20px;">
+                        <p style="color: var(--primary); font-weight: 600; margin-bottom: 10px;">💎 Условия программы:</p>
+                        <p style="font-size: 14px; opacity: 0.9;">
+                            • 10% от первого депозита реферала<br>
+                            • 5% от его ежедневной прибыли<br>
+                            • Бонусы за активность<br>
+                            • 3 уровня реферальной сети
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ВКЛАДКА: КАРЬЕРА -->
+            <div id="tab-career" class="hidden">
+                <div class="card">
+                    <h3 style="color: var(--primary); margin-bottom: 20px;">🏆 Карьерный рост</h3>
+                    
+                    <!-- Текущий уровень -->
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="font-size: 14px; opacity: 0.8; margin-bottom: 10px;">Ваш текущий уровень</div>
+                        <div style="font-size: 32px; font-weight: 800; color: var(--primary);" id="currentLevel">Bronze</div>
+                    </div>
+                    
+                    <!-- Уровни -->
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-md);">
+                            <div style="font-size: 24px;">🥉</div>
+                            <div>
+                                <div style="font-weight: 600;">Bronze (начальный)</div>
+                                <div style="font-size: 12px; opacity: 0.7;">Доходность: 1.5%/день</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-md);">
+                            <div style="font-size: 24px;">🥈</div>
+                            <div>
+                                <div style="font-weight: 600;">Silver (5 рефералов)</div>
+                                <div style="font-size: 12px; opacity: 0.7;">Доходность: 2.0%/день</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-md);">
+                            <div style="font-size: 24px;">🥇</div>
+                            <div>
+                                <div style="font-weight: 600;">Gold (20 рефералов)</div>
+                                <div style="font-size: 12px; opacity: 0.7;">Доходность: 2.5%/день</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="showNextLevelInfo()">
+                        <i class="fas fa-arrow-up"></i> Узнать как повысить уровень
+                    </button>
+                </div>
+            </div>
+            
+            <!-- ВКЛАДКА: ПОДДЕРЖКА -->
+            <div id="tab-support" class="hidden">
+                <div class="card">
+                    <h3 style="color: var(--primary); margin-bottom: 20px;">🆘 Поддержка</h3>
+                    
+                    <!-- Контакты -->
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                        <p style="color: var(--primary); font-weight: 600; margin-bottom: 15px;">📞 Контакты:</p>
+                        <p style="font-size: 14px; margin-bottom: 10px;">
+                            • Техническая поддержка: @your_support<br>
+                            • Финансовые вопросы: @your_manager<br>
+                            • Общие вопросы: @your_admin
+                        </p>
+                    </div>
+                    
+                    <!-- Часы работы -->
+                    <div style="background: rgba(0, 201, 183, 0.1); padding: 20px; border-radius: var(--radius-md); border: 1px solid rgba(0, 201, 183, 0.3); margin-bottom: 20px;">
+                        <p style="color: var(--secondary); font-weight: 600; margin-bottom: 10px;">⏰ Часы работы:</p>
+                        <p style="font-size: 14px;">
+                            Пн-Пт: 10:00 - 22:00 (МСК)<br>
+                            Сб-Вс: 12:00 - 20:00 (МСК)
+                        </p>
+                    </div>
+                    
+                    <!-- Частые вопросы -->
+                    <div style="background: rgba(255, 107, 53, 0.1); padding: 20px; border-radius: var(--radius-md); border: 1px solid rgba(255, 107, 53, 0.3);">
+                        <p style="color: var(--primary); font-weight: 600; margin-bottom: 10px;">❓ Частые вопросы:</p>
+                        <p style="font-size: 14px; opacity: 0.9;">
+                            • <b>Минимальное пополнение:</b> $10<br>
+                            • <b>Минимальный вывод:</b> $50<br>
+                            • <b>Время обработки вывода:</b> 1-24 часа<br>
+                            • <b>Прибыль начисляется:</b> Ежедневно
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Футер -->
+        <div style="text-align: center; padding: 30px 0; opacity: 0.5; font-size: 12px;">
+            <div>© 2024 Capital Pro. Все права защищены.</div>
+            <div style="margin-top: 5px;">🦊 Умные инвестиции для умных людей</div>
+        </div>
+    </div>
+
+    <script>
+        // =================== ИНИЦИАЛИЗАЦИЯ ===================
+        const tg = window.Telegram.WebApp;
+        let user = tg.initDataUnsafe?.user;
+        
+        // Инициализация Web App
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#0F172A');
+        tg.setBackgroundColor('#0F172A');
+        tg.BackButton.hide();
+        
+        // =================== УТИЛИТЫ ===================
+        
+        // Показать уведомление
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification';
+            
+            // Устанавливаем цвет в зависимости от типа
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, var(--success), #00B37D)';
+            } else if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, var(--danger), #DB2C66)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
+            }
+            
+            notification.classList.add('show');
+            
+            // Автоматически скрываем через 3 секунды
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Открыть модальное окно
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        
+        // Закрыть модальное окно
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Переключение вкладок
+        function switchTab(tabName) {
+            // Сбрасываем активные вкладки
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Устанавливаем активную вкладку
+            event.target.classList.add('active');
+            
+            // Скрываем все содержимое вкладок
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Показываем выбранную вкладку
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+        }
+        
+        // Копировать реферальную ссылку
+        function copyReferralLink() {
+            const link = document.getElementById('referralCode').textContent;
+            if (link && link !== 'Загрузка...') {
+                navigator.clipboard.writeText(link).then(() => {
+                    showNotification('✅ Ссылка скопирована в буфер!', 'success');
+                });
+            }
+        }
+        
+        // =================== ОСНОВНЫЕ ФУНКЦИИ ===================
+        
+        // Загрузка данных пользователя
+        function loadUserData() {
+            if (!user || !user.id) {
+                showNotification('❌ Ошибка загрузки данных', 'error');
+                return;
+            }
+            
+            // Отправляем запрос на получение данных
+            tg.sendData(JSON.stringify({
+                action: 'get_user',
+                user_id: user.id,
+                timestamp: new Date().toISOString()
+            }));
+            
+            showNotification('🔄 Загрузка данных...', 'info');
+        }
+        
+        // Пополнение баланса
+        function processDeposit(amount) {
+            if (!user?.id) {
+                showNotification('❌ Ошибка: пользователь не найден', 'error');
+                return;
+            }
+            
+            if (amount < 10) {
