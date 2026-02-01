@@ -96,6 +96,23 @@
             text-align: left;
             padding-left: 20px;
         }
+        .payment-info {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .payment-info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            display: block;
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -125,7 +142,6 @@
                 <div class="card error-card">
                     <h2>❌ Ошибка загрузки</h2>
                     <p><b>Telegram не передал данные пользователя.</b></p>
-                    <p>ID пользователя: ${user ? 'есть' : 'нет'}</p>
                     <p><b>Решение:</b></p>
                     <ol>
                         <li>Откройте приложение через кнопку меню бота</li>
@@ -262,50 +278,157 @@
             }, 1000);
         }
         
-        // ПОПОЛНЕНИЕ БАЛАНСА
+        // ================== ПОПОЛНЕНИЕ БАЛАНСА ==================
         function showDepositPopup() {
             tg.showPopup({
                 title: '💳 Пополнение баланса',
-                message: 'Выберите сумму пополнения:',
+                message: 'Выберите способ оплаты:',
                 buttons: [
-                    {id: '50', text: '$50', type: 'default'},
-                    {id: '100', text: '$100', type: 'default'},
-                    {id: '500', text: '$500', type: 'default'},
-                    {id: '1000', text: '$1000', type: 'default'},
+                    {id: 'card', text: '💳 Банковская карта', type: 'default'},
+                    {id: 'crypto', text: '₿ Криптовалюта (USDT)', type: 'default'},
                     {id: 'cancel', text: '❌ Отмена', type: 'cancel'}
                 ]
             }).then(function(btnId) {
-                if (btnId !== 'cancel' && btnId) {
-                    const amount = parseInt(btnId);
-                    
-                    // Отправляем запрос на пополнение
-                    tg.sendData(JSON.stringify({
-                        action: 'deposit',
-                        user_id: user.id,
-                        data: { amount: amount },
-                        timestamp: new Date().toISOString()
-                    }));
-                    
-                    showNotification(`✅ Запрос на пополнение $${amount} отправлен!`);
-                    
-                    // Обновляем баланс локально
-                    const balanceElem = document.getElementById('balance');
-                    const currentBalance = parseFloat(balanceElem.textContent.replace('$', ''));
-                    balanceElem.textContent = `$${(currentBalance + amount).toFixed(2)}`;
+                if (btnId === 'card') {
+                    showCardDeposit();
+                } else if (btnId === 'crypto') {
+                    showCryptoDeposit();
                 }
             });
         }
         
-        // ВЫВОД СРЕДСТВ
+        function showCardDeposit() {
+            tg.showPopup({
+                title: '💳 Пополнение картой',
+                message: 'Введите сумму пополнения ($50 - $5000):',
+                buttons: [
+                    {id: '50', text: '$50', type: 'default'},
+                    {id: '100', text: '$100', type: 'default'},
+                    {id: '500', text: '$500', type: 'default'},
+                    {id: 'custom', text: '💰 Другая сумма', type: 'default'},
+                    {id: 'back', text: '↩️ Назад', type: 'cancel'}
+                ]
+            }).then(function(btnId) {
+                if (btnId && btnId !== 'back') {
+                    if (btnId === 'custom') {
+                        tg.showPopup({
+                            title: 'Введите сумму',
+                            message: 'Минимум: $50\nМаксимум: $5000',
+                            buttons: [
+                                {id: 'confirm', text: 'Подтвердить', type: 'default'},
+                                {id: 'back', text: 'Назад', type: 'cancel'}
+                            ]
+                        }).then(function(btnId2) {
+                            if (btnId2 === 'confirm') {
+                                processDeposit(100, 'card'); // Тестовая сумма $100
+                            }
+                        });
+                    } else {
+                        const amount = parseInt(btnId);
+                        processDeposit(amount, 'card');
+                    }
+                }
+            });
+        }
+        
+        function showCryptoDeposit() {
+            const cryptoAddress = 'TQNmjGXUbNMuN8sG1AkECjLZKdPq6SpYxN'; // Тестовый адрес TRC20
+            const amounts = [50, 100, 200, 500, 1000];
+            
+            let buttons = amounts.map(amount => ({
+                id: `crypto_${amount}`,
+                text: `$${amount} (USDT)`,
+                type: 'default'
+            }));
+            
+            buttons.push({id: 'back', text: '↩️ Назад', type: 'cancel'});
+            
+            const message = `📋 <b>Инструкция по оплате:</b>\n\n` +
+                           `1. Отправьте USDT на адрес:\n` +
+                           `<code>${cryptoAddress}</code>\n\n` +
+                           `2. Сеть: <b>TRC20 (Tron)</b>\n` +
+                           `3. Минимум: <b>$50 USDT</b>\n\n` +
+                           `✅ Баланс пополнится после 1 подтверждения сети\n` +
+                           `⏱️ Обычно это занимает 2-5 минут`;
+            
+            tg.showPopup({
+                title: '₿ Пополнение USDT (TRC20)',
+                message: message,
+                buttons: buttons
+            }).then(function(btnId) {
+                if (btnId && btnId !== 'back' && btnId.startsWith('crypto_')) {
+                    const amount = parseInt(btnId.split('_')[1]);
+                    
+                    tg.showAlert(
+                        '✅ Готово к оплате!\n\n' +
+                        `Сумма: <b>$${amount} USDT</b>\n` +
+                        `Адрес: <code>${cryptoAddress}</code>\n` +
+                        `Сеть: <b>TRC20</b>\n\n` +
+                        'После отправки нажмите "Подтвердить оплату"'
+                    ).then(() => {
+                        tg.showPopup({
+                            title: 'Подтверждение оплаты',
+                            message: `Вы отправили $${amount} USDT?`,
+                            buttons: [
+                                {id: 'confirm_paid', text: '✅ Да, отправил', type: 'default'},
+                                {id: 'cancel', text: '❌ Нет, отмена', type: 'cancel'}
+                            ]
+                        }).then(function(confirmBtn) {
+                            if (confirmBtn === 'confirm_paid') {
+                                // Эмуляция успешной оплаты
+                                showNotification(`⏳ Ожидаем подтверждение сети...`);
+                                
+                                setTimeout(() => {
+                                    processDeposit(amount, 'crypto');
+                                    showNotification(`✅ Оплата подтверждена! +$${amount}`);
+                                }, 3000);
+                            }
+                        });
+                    });
+                }
+            });
+        }
+        
+        function processDeposit(amount, method) {
+            // Отправляем запрос на пополнение
+            tg.sendData(JSON.stringify({
+                action: 'deposit',
+                user_id: user.id,
+                data: { 
+                    amount: amount,
+                    method: method,
+                    status: 'completed',
+                    timestamp: new Date().toISOString()
+                }
+            }));
+            
+            // Обновляем баланс локально
+            const balanceElem = document.getElementById('balance');
+            const currentBalance = parseFloat(balanceElem.textContent.replace('$', ''));
+            balanceElem.textContent = `$${(currentBalance + amount).toFixed(2)}`;
+            
+            // Обновляем инвестированную сумму
+            const investedElem = document.getElementById('invested');
+            const currentInvested = parseFloat(investedElem.textContent.replace('$', ''));
+            investedElem.textContent = `$${(currentInvested + amount).toFixed(2)}`;
+        }
+        
+        // ================== ВЫВОД СРЕДСТВ ==================
         function showWithdrawPopup() {
             const currentBalance = parseFloat(document.getElementById('balance').textContent.replace('$', ''));
             
+            if (currentBalance < 50) {
+                tg.showAlert('❌ Минимальная сумма вывода: $50\n\nДоступно: $' + currentBalance.toFixed(2));
+                return;
+            }
+            
             tg.showPopup({
                 title: '📤 Вывод средств',
-                message: `Доступно: $${currentBalance.toFixed(2)}\nВведите сумму вывода:`,
+                message: `💰 Доступно: $${currentBalance.toFixed(2)}\n\nВыберите сумму вывода:`,
                 buttons: [
-                    {id: 'half', text: '50% от баланса', type: 'default'},
-                    {id: 'all', text: '100% от баланса', type: 'default'},
+                    {id: '50', text: '$50', type: 'default'},
+                    {id: '100', text: '$100', type: 'default'},
+                    {id: '200', text: '$200', type: 'default'},
                     {id: 'custom', text: '💰 Другая сумма', type: 'default'},
                     {id: 'cancel', text: '❌ Отмена', type: 'cancel'}
                 ]
@@ -313,31 +436,74 @@
                 if (btnId === 'cancel') return;
                 
                 let amount = 0;
-                if (btnId === 'half') amount = currentBalance * 0.5;
-                else if (btnId === 'all') amount = currentBalance;
-                else if (btnId === 'custom') {
+                if (btnId === 'custom') {
                     tg.showPopup({
                         title: 'Введите сумму',
                         message: `Максимум: $${currentBalance.toFixed(2)}`,
                         buttons: [
-                            {id: 'confirm', text: 'Подтвердить', type: 'default'},
-                            {id: 'cancel', text: 'Отмена', type: 'cancel'}
+                            {id: 'confirm_custom', text: 'Подтвердить', type: 'default'},
+                            {id: 'back', text: 'Назад', type: 'cancel'}
                         ]
                     });
                     return;
+                } else {
+                    amount = parseInt(btnId);
                 }
                 
-                if (amount > 0) {
-                    tg.sendData(JSON.stringify({
-                        action: 'withdraw',
-                        user_id: user.id,
-                        data: { amount: amount },
-                        timestamp: new Date().toISOString()
-                    }));
-                    
-                    showNotification(`✅ Заявка на вывод $${amount.toFixed(2)} создана!`);
+                if (amount > 0 && amount <= currentBalance) {
+                    showWithdrawMethod(amount);
+                } else {
+                    tg.showAlert('❌ Неверная сумма!');
                 }
             });
+        }
+        
+        function showWithdrawMethod(amount) {
+            tg.showPopup({
+                title: '📤 Способ вывода',
+                message: `Сумма: $${amount.toFixed(2)}\n\nВыберите способ получения:`,
+                buttons: [
+                    {id: 'card', text: '💳 Банковская карта', type: 'default'},
+                    {id: 'crypto', text: '₿ Криптовалюта', type: 'default'},
+                    {id: 'back', text: '↩️ Назад', type: 'cancel'}
+                ]
+            }).then(function(method) {
+                if (method === 'card') {
+                    processWithdrawal(amount, 'card');
+                } else if (method === 'crypto') {
+                    processWithdrawal(amount, 'crypto');
+                }
+            });
+        }
+        
+        function processWithdrawal(amount, method) {
+            // Отправляем запрос на вывод
+            tg.sendData(JSON.stringify({
+                action: 'withdraw',
+                user_id: user.id,
+                data: { 
+                    amount: amount,
+                    method: method,
+                    status: 'pending',
+                    timestamp: new Date().toISOString()
+                }
+            }));
+            
+            // Обновляем баланс локально
+            const balanceElem = document.getElementById('balance');
+            const currentBalance = parseFloat(balanceElem.textContent.replace('$', ''));
+            balanceElem.textContent = `$${(currentBalance - amount).toFixed(2)}`;
+            
+            showNotification(`✅ Заявка на вывод $${amount} создана!`);
+            
+            tg.showAlert(
+                '📋 Заявка на вывод создана!\n\n' +
+                `💰 Сумма: $${amount.toFixed(2)}\n` +
+                `📝 Способ: ${method === 'card' ? 'Банковская карта' : 'Криптовалюта'}\n` +
+                `⏱️ Статус: На модерации\n\n` +
+                `✅ Обычно обработка занимает 1-24 часа.\n` +
+                `📱 Статус можно отслеживать в истории операций.`
+            );
         }
         
         // РЕФЕРАЛЬНАЯ СИСТЕМА
@@ -345,17 +511,20 @@
             if (user) {
                 let refLink = `https://t.me/${tg.initDataUnsafe.user?.username || 'your_bot'}?start=ref${user.id}`;
                 const refCount = parseInt(document.getElementById('referrals-count').textContent);
+                const earned = refCount * 50;
                 
                 tg.showAlert(
                     '👥 РЕФЕРАЛЬНАЯ СИСТЕМА\n\n' +
-                    `🔗 Ваша ссылка:\n${refLink}\n\n` +
-                    `📊 Статистика:\n` +
+                    `🔗 <b>Ваша ссылка:</b>\n<code>${refLink}</code>\n\n` +
+                    `📊 <b>Статистика:</b>\n` +
                     `• Рефералов: ${refCount}\n` +
-                    `• Заработано: $${(refCount * 50).toFixed(2)}\n\n` +
-                    '💎 Условия:\n' +
+                    `• Заработано: $${earned.toFixed(2)}\n\n` +
+                    '💎 <b>Условия:</b>\n' +
                     '• 10% от депозита реферала\n' +
                     '• 5% от его ежедневной прибыли\n' +
-                    '• 3 уровня рефералов'
+                    '• 3 уровня рефералов\n\n' +
+                    '🏆 <b>Бонус:</b>\n' +
+                    'За каждых 5 рефералов +0.1% к вашей доходности!'
                 );
             }
         }
@@ -364,18 +533,22 @@
         function showCareer() {
             tg.showAlert(
                 '🏆 КАРЬЕРНЫЙ РОСТ\n\n' +
-                '🥉 Латунь (базовый):\n' +
+                '🥉 <b>Латунь (базовый):</b>\n' +
                 '• Доходность: 1.5%/день\n' +
-                '• Мин. депозит: $50\n\n' +
-                '🥈 Серебро (5 рефералов):\n' +
+                '• Мин. депозит: $50\n' +
+                '• Рефералов: 0+\n\n' +
+                '🥈 <b>Серебро (5 рефералов):</b>\n' +
                 '• Доходность: 2.0%/день\n' +
-                '• Мин. депозит: $200\n\n' +
-                '🥇 Золото (20 рефералов):\n' +
+                '• Мин. депозит: $200\n' +
+                '• Бонус: +5% к реферальным\n\n' +
+                '🥇 <b>Золото (20 рефералов):</b>\n' +
                 '• Доходность: 2.5%/день\n' +
-                '• Мин. депозит: $1000\n\n' +
-                '💎 Платина (50 рефералов):\n' +
+                '• Мин. депозит: $1000\n' +
+                '• Бонус: +10% к реферальным\n\n' +
+                '💎 <b>Платина (50 рефералов):</b>\n' +
                 '• Доходность: 3.0%/день\n' +
-                '• Мин. депозит: $5000'
+                '• Мин. депозит: $5000\n' +
+                '• Бонус: +15% к реферальным'
             );
         }
         
@@ -390,21 +563,28 @@
             
             tg.showAlert(
                 '🧮 КАЛЬКУЛЯТОР ДОХОДНОСТИ\n\n' +
-                `При инвестиции: $${invested.toFixed(2)}\n` +
-                `Доходность: ${rate}%/день\n\n` +
-                '📈 Прибыль:\n' +
-                `• За день: $${daily.toFixed(2)}\n` +
-                `• За месяц: $${monthly.toFixed(2)}\n` +
-                `• За год: $${yearly.toFixed(2)}\n\n` +
-                '💵 Итоговые суммы:\n' +
-                `• Через месяц: $${(invested + monthly).toFixed(2)}\n` +
-                `• Через год: $${(invested + yearly).toFixed(2)}`
+                `При инвестиции: <b>$${invested.toFixed(2)}</b>\n` +
+                `Доходность: <b>${rate}%/день</b>\n\n` +
+                '📈 <b>Прибыль:</b>\n' +
+                `• За день: <b>$${daily.toFixed(2)}</b>\n` +
+                `• За месяц: <b>$${monthly.toFixed(2)}</b>\n` +
+                `• За год: <b>$${yearly.toFixed(2)}</b>\n\n` +
+                '💵 <b>Итоговые суммы:</b>\n' +
+                `• Через месяц: <b>$${(invested + monthly).toFixed(2)}</b>\n` +
+                `• Через год: <b>$${(invested + yearly).toFixed(2)}</b>`
             );
         }
         
         // ИСТОРИЯ ОПЕРАЦИЙ
         function showHistory() {
-            tg.showAlert('📋 ИСТОРИЯ ОПЕРАЦИЙ\n\nПока что операций нет.\n\nПосле пополнения баланса здесь будет отображаться история всех транзакций.');
+            tg.showAlert(
+                '📋 ИСТОРИЯ ОПЕРАЦИЙ\n\n' +
+                'Пока что операций нет.\n\n' +
+                'После пополнения или вывода средств здесь будет отображаться история всех транзакций с датами, суммами и статусами.\n\n' +
+                '✅ Завершено\n' +
+                '⏳ В обработке\n' +
+                '❌ Отклонено'
+            );
         }
         
         // ОБНОВИТЬ ДАННЫЕ
